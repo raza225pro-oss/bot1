@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TradeSignal Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#050a0f;--bg2:#0a1520;--bg3:#0f1e2e;--panel:#0d1b2a;--border:#1a3550;--accent:#00d4ff;--accent2:#00ff88;--gold:#ffd700;--text:#c8e6f5;--dim:#5a8aaa;--up:#00ff88;--down:#ff3366;--glow:0 0 20px rgba(0,212,255,0.4);--glow-up:0 0 30px rgba(0,255,136,0.5);--glow-down:0 0 30px rgba(255,51,102,0.5);}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Share Tech Mono',monospace;min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 60% at 50% -10%,rgba(0,80,160,0.3) 0%,transparent 60%),radial-gradient(ellipse 60% 40% at 100% 100%,rgba(0,212,255,0.08) 0%,transparent 50%);pointer-events:none;z-index:0;}
+body::after{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,212,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,0.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
+.container{position:relative;z-index:1;max-width:720px;margin:0 auto;padding:20px 16px 80px;}
+.header{text-align:center;margin-bottom:26px;padding:18px 0 14px;}
+.logo{font-family:'Orbitron',sans-serif;font-size:26px;font-weight:900;letter-spacing:4px;color:var(--accent);text-shadow:var(--glow);animation:pulse-glow 3s ease-in-out infinite;}
+.logo span{color:var(--accent2);}
+.tagline{font-size:10px;color:var(--dim);letter-spacing:3px;margin-top:5px;text-transform:uppercase;}
+@keyframes pulse-glow{0%,100%{text-shadow:0 0 20px rgba(0,212,255,0.4);}50%{text-shadow:0 0 50px rgba(0,212,255,0.9),0 0 90px rgba(0,212,255,0.3);}}
+.ticker-bar{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:7px 14px;margin-bottom:20px;display:flex;align-items:center;gap:10px;overflow:hidden;}
+.ticker-dot{width:7px;height:7px;border-radius:50%;background:var(--accent2);box-shadow:0 0 8px var(--accent2);animation:blink 1s infinite;flex-shrink:0;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+.ticker-text{font-size:11px;color:var(--dim);white-space:nowrap;animation:scroll-left 40s linear infinite;}
+@keyframes scroll-left{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.steps-wrapper{display:flex;flex-direction:column;gap:11px;}
+.step-card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:15px 17px;transition:border-color 0.3s;}
+.step-card.active{border-color:var(--accent);box-shadow:inset 0 0 30px rgba(0,212,255,0.04),var(--glow);}
+.step-card.done{border-color:rgba(0,255,136,0.3);}
+.step-locked{opacity:0.3;pointer-events:none;filter:blur(0.4px);}
+.step-header{display:flex;align-items:center;gap:10px;margin-bottom:11px;}
+.step-num{width:26px;height:26px;border-radius:50%;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:'Orbitron',sans-serif;font-size:10px;color:var(--dim);flex-shrink:0;transition:all 0.3s;}
+.step-card.active .step-num{background:var(--accent);border-color:var(--accent);color:var(--bg);box-shadow:0 0 12px rgba(0,212,255,0.5);}
+.step-card.done .step-num{background:var(--accent2);border-color:var(--accent2);color:var(--bg);}
+.step-label{font-family:'Orbitron',sans-serif;font-size:10px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;}
+.step-card.active .step-label{color:var(--accent);}
+.step-card.done .step-label{color:var(--accent2);}
+.step-divider{width:2px;height:11px;background:linear-gradient(var(--border),transparent);margin:0 auto;}
+.platform-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:7px;}
+.platform-btn{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:11px 8px;color:var(--dim);font-family:'Share Tech Mono',monospace;font-size:11px;cursor:pointer;transition:all 0.2s;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.platform-btn .p-icon{font-size:20px;}
+.platform-btn .p-name{font-size:11px;font-weight:bold;color:var(--text);}
+.platform-btn .p-type{font-size:9px;color:var(--dim);letter-spacing:0.5px;text-align:center;}
+.platform-btn:hover{border-color:var(--accent);background:rgba(0,212,255,0.05);}
+.platform-btn.selected{background:rgba(0,212,255,0.1);border-color:var(--accent);box-shadow:0 0 12px rgba(0,212,255,0.2);}
+.platform-btn.selected .p-name{color:var(--accent);}
+.tz-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:7px;}
+.tz-btn{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:8px 11px;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:11px;cursor:pointer;transition:all 0.2s;text-align:left;}
+.tz-btn:hover{border-color:var(--accent);color:var(--accent);background:rgba(0,212,255,0.05);}
+.tz-btn.selected{background:rgba(0,212,255,0.1);border-color:var(--accent);color:var(--accent);}
+.tz-city{font-size:9px;color:var(--dim);display:block;margin-top:2px;}
+.tz-btn.selected .tz-city{color:rgba(0,212,255,0.6);}
+.market-search-wrap{position:relative;margin-bottom:9px;}
+.market-search-input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 36px;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:13px;outline:none;transition:border-color 0.2s;letter-spacing:0.5px;}
+.market-search-input:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(0,212,255,0.1);}
+.market-search-input::placeholder{color:var(--dim);}
+.search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--dim);font-size:14px;pointer-events:none;}
+.market-clear-btn{position:absolute;right:9px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--dim);cursor:pointer;font-size:15px;padding:3px;display:none;}
+.market-clear-btn:hover{color:var(--accent);}
+.cat-tabs{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:9px;}
+.cat-tab{background:var(--bg3);border:1px solid var(--border);border-radius:16px;padding:4px 11px;font-size:10px;color:var(--dim);cursor:pointer;transition:all 0.2s;letter-spacing:0.5px;font-family:'Share Tech Mono',monospace;}
+.cat-tab:hover{border-color:var(--accent);color:var(--accent);}
+.cat-tab.active-tab{background:rgba(0,212,255,0.1);border-color:var(--accent);color:var(--accent);}
+.market-count{font-size:10px;color:var(--dim);margin-bottom:7px;letter-spacing:1px;}
+.market-list-wrap{max-height:260px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;background:var(--bg3);}
+.market-list-wrap::-webkit-scrollbar{width:4px;}
+.market-list-wrap::-webkit-scrollbar-track{background:var(--bg3);}
+.market-list-wrap::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
+.market-item{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;border-bottom:1px solid rgba(26,53,80,0.4);cursor:pointer;transition:all 0.15s;gap:10px;}
+.market-item:last-child{border-bottom:none;}
+.market-item:hover{background:rgba(0,212,255,0.06);}
+.market-item.selected-item{background:rgba(0,212,255,0.1);}
+.market-item-left{display:flex;align-items:center;gap:9px;}
+.market-icon{font-size:17px;width:22px;text-align:center;flex-shrink:0;}
+.market-name{font-size:13px;color:var(--text);letter-spacing:0.5px;}
+.market-desc{font-size:9px;color:var(--dim);margin-top:1px;}
+.market-badge{font-size:9px;padding:2px 7px;border-radius:10px;border:1px solid;letter-spacing:0.5px;flex-shrink:0;white-space:nowrap;}
+.badge-crypto{color:#f7931a;border-color:rgba(247,147,26,0.4);background:rgba(247,147,26,0.08);}
+.badge-forex{color:#00d4ff;border-color:rgba(0,212,255,0.4);background:rgba(0,212,255,0.08);}
+.badge-otc{color:#b44fff;border-color:rgba(180,79,255,0.4);background:rgba(180,79,255,0.08);}
+.badge-commodity{color:#ffd700;border-color:rgba(255,215,0,0.4);background:rgba(255,215,0,0.08);}
+.badge-index{color:#00ff88;border-color:rgba(0,255,136,0.4);background:rgba(0,255,136,0.08);}
+.badge-stock{color:#ff8c00;border-color:rgba(255,140,0,0.4);background:rgba(255,140,0,0.08);}
+.badge-futures{color:#ff3366;border-color:rgba(255,51,102,0.4);background:rgba(255,51,102,0.08);}
+.badge-synthetic{color:#aa88ff;border-color:rgba(170,136,255,0.4);background:rgba(170,136,255,0.08);}
+.no-results{padding:22px;text-align:center;color:var(--dim);font-size:12px;letter-spacing:1px;}
+.selected-market-display{background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.25);border-radius:8px;padding:10px 13px;display:none;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.sm-info{display:flex;align-items:center;gap:9px;}
+.sm-name{font-size:13px;color:var(--accent);letter-spacing:0.5px;}
+.sm-sub{font-size:9px;color:var(--dim);margin-top:1px;}
+.change-market-btn{background:none;border:1px solid var(--border);color:var(--dim);cursor:pointer;font-size:10px;letter-spacing:1px;font-family:'Share Tech Mono',monospace;padding:4px 10px;border-radius:4px;transition:all 0.2s;}
+.change-market-btn:hover{border-color:var(--accent);color:var(--accent);}
+.time-grid{display:flex;flex-wrap:wrap;gap:7px;}
+.time-btn{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:9px 16px;color:var(--dim);font-family:'Orbitron',sans-serif;font-size:11px;cursor:pointer;transition:all 0.2s;letter-spacing:1px;}
+.time-btn:hover{border-color:var(--gold);color:var(--gold);}
+.time-btn.selected{background:rgba(255,215,0,0.08);border-color:var(--gold);color:var(--gold);box-shadow:0 0 10px rgba(255,215,0,0.15);}
+.signal-btn-wrap{margin-top:20px;text-align:center;display:none;}
+#getSignalBtn{background:linear-gradient(135deg,#003d80,#0066cc);border:1px solid var(--accent);border-radius:8px;padding:14px 42px;color:#fff;font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;letter-spacing:3px;cursor:pointer;transition:all 0.3s;box-shadow:0 0 20px rgba(0,100,200,0.3);}
+#getSignalBtn:hover{background:linear-gradient(135deg,#0055aa,#0099ff);box-shadow:0 0 40px rgba(0,153,255,0.5);transform:translateY(-2px);}
+#getSignalBtn:disabled{opacity:0.6;cursor:not-allowed;transform:none;}
+#signalResult{display:none;margin-top:16px;border-radius:12px;padding:24px 20px;text-align:center;position:relative;overflow:hidden;animation:slide-up 0.4s cubic-bezier(0.16,1,0.3,1);}
+#signalResult.up{background:linear-gradient(135deg,rgba(0,255,136,0.07),rgba(0,255,136,0.02));border:2px solid var(--up);box-shadow:var(--glow-up);}
+#signalResult.down{background:linear-gradient(135deg,rgba(255,51,102,0.07),rgba(255,51,102,0.02));border:2px solid var(--down);box-shadow:var(--glow-down);}
+@keyframes slide-up{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+.signal-arrow{font-size:52px;line-height:1;margin-bottom:7px;animation:bounce 0.8s ease-in-out 3;}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.signal-direction{font-family:'Orbitron',sans-serif;font-size:26px;font-weight:900;letter-spacing:5px;margin-bottom:5px;}
+#signalResult.up .signal-direction{color:var(--up);text-shadow:0 0 30px var(--up);}
+#signalResult.down .signal-direction{color:var(--down);text-shadow:0 0 30px var(--down);}
+.signal-meta{font-size:11px;color:var(--dim);letter-spacing:1.5px;margin-bottom:14px;}
+.summary-row{display:flex;flex-wrap:wrap;justify-content:center;gap:5px;margin-bottom:12px;}
+.summary-pill{display:inline-flex;align-items:center;gap:5px;background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:3px 10px;font-size:10px;color:var(--dim);}
+.summary-pill .dot{width:5px;height:5px;border-radius:50%;background:var(--accent);}
+.strength-row{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:12px;}
+.strength-label{font-size:10px;color:var(--dim);letter-spacing:2px;}
+.strength-bars{display:flex;gap:4px;align-items:flex-end;}
+.sbar{width:7px;border-radius:2px;background:var(--border);transition:background 0.3s;}
+.sbar:nth-child(1){height:9px}.sbar:nth-child(2){height:14px}.sbar:nth-child(3){height:19px}.sbar:nth-child(4){height:24px}.sbar:nth-child(5){height:30px}
+.sbar.active-up{background:var(--up);box-shadow:0 0 5px var(--up);}
+.sbar.active-down{background:var(--down);box-shadow:0 0 5px var(--down);}
+.countdown-wrap{margin-top:14px;display:flex;flex-direction:column;align-items:center;gap:6px;}
+.countdown-label{font-size:10px;color:var(--dim);letter-spacing:2px;}
+.countdown-bar-bg{width:100%;max-width:250px;height:4px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden;}
+.countdown-bar{height:100%;border-radius:2px;transition:width 1s linear;}
+#signalResult.up .countdown-bar{background:var(--up);}
+#signalResult.down .countdown-bar{background:var(--down);}
+.countdown-time{font-family:'Orbitron',sans-serif;font-size:20px;font-weight:700;}
+#signalResult.up .countdown-time{color:var(--up);}
+#signalResult.down .countdown-time{color:var(--down);}
+.flash{animation:flash-anim 0.3s ease;}
+@keyframes flash-anim{0%,100%{opacity:1}50%{opacity:0.4}}
+.market-status-bar{background:rgba(255,51,102,0.08);border:1px solid rgba(255,51,102,0.25);border-radius:6px;padding:8px 12px;margin-bottom:9px;font-size:10px;color:#ff6688;letter-spacing:1px;display:none;}
+.market-status-bar.open{background:rgba(0,255,136,0.06);border-color:rgba(0,255,136,0.2);color:#00cc66;}
+footer{text-align:center;margin-top:36px;font-size:9px;color:var(--border);letter-spacing:2px;}
+::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:var(--bg);}::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="logo">TRADE<span>SIGNAL</span> PRO</div>
+    <div class="tagline">Advanced Market Analysis · AI Signal Engine v3.0</div>
+  </div>
+  <div class="ticker-bar">
+    <div class="ticker-dot"></div>
+    <div class="ticker-text" id="tickerText">Loading live markets...</div>
+  </div>
+  <div class="steps-wrapper">
+    <div class="step-card active" id="step1">
+      <div class="step-header"><div class="step-num">1</div><div class="step-label">Select Platform</div></div>
+      <div class="platform-grid" id="platformGrid"></div>
+    </div>
+    <div class="step-divider"></div>
+    <div class="step-card step-locked" id="step2">
+      <div class="step-header"><div class="step-num">2</div><div class="step-label">Select Time Zone</div></div>
+      <div class="tz-grid" id="tzGrid"></div>
+    </div>
+    <div class="step-divider"></div>
+    <div class="step-card step-locked" id="step3">
+      <div class="step-header"><div class="step-num">3</div><div class="step-label">Select Market</div></div>
+      <div class="market-status-bar" id="marketStatusBar"></div>
+      <div class="selected-market-display" id="selectedMarketDisplay">
+        <div class="sm-info">
+          <span id="smIcon" style="font-size:20px"></span>
+          <div><div class="sm-name" id="smName"></div><div class="sm-sub" id="smSub"></div></div>
+        </div>
+        <button class="change-market-btn" onclick="showMarketSearch()">✎ CHANGE</button>
+      </div>
+      <div id="marketSearchPanel">
+        <div class="market-search-wrap">
+          <span class="search-icon">🔍</span>
+          <input class="market-search-input" id="marketSearch" type="text" placeholder="Search symbol, pair, name... e.g. BTC, EUR, GOLD" oninput="filterMarkets()" autocomplete="off">
+          <button class="market-clear-btn" id="clearBtn" onclick="clearSearch()">✕</button>
+        </div>
+        <div class="cat-tabs" id="catTabs"></div>
+        <div class="market-count" id="marketCount"></div>
+        <div class="market-list-wrap"><div id="marketList"></div></div>
+      </div>
+    </div>
+    <div class="step-divider"></div>
+    <div class="step-card step-locked" id="step4">
+      <div class="step-header"><div class="step-num">4</div><div class="step-label">Select Candle Time</div></div>
+      <div class="time-grid">
+        <button class="time-btn" onclick="selectTime(1,this)">1 MIN</button>
+        <button class="time-btn" onclick="selectTime(2,this)">2 MIN</button>
+        <button class="time-btn" onclick="selectTime(3,this)">3 MIN</button>
+        <button class="time-btn" onclick="selectTime(5,this)">5 MIN</button>
+        <button class="time-btn" onclick="selectTime(10,this)">10 MIN</button>
+        <button class="time-btn" onclick="selectTime(15,this)">15 MIN</button>
+        <button class="time-btn" onclick="selectTime(30,this)">30 MIN</button>
+        <button class="time-btn" onclick="selectTime(60,this)">1 HOUR</button>
+        <button class="time-btn" onclick="selectTime(240,this)">4 HOUR</button>
+      </div>
+    </div>
+  </div>
+  <div class="signal-btn-wrap" id="signalBtnWrap">
+    <button id="getSignalBtn" onclick="getSignal()">⚡ GET SIGNAL</button>
+  </div>
+  <div id="signalResult">
+    <div class="summary-row" id="summaryRow"></div>
+    <div class="signal-arrow" id="signalArrow"></div>
+    <div class="signal-direction" id="signalDirection"></div>
+    <div class="signal-meta" id="signalMeta"></div>
+    <div class="strength-row">
+      <span class="strength-label">STRENGTH</span>
+      <div class="strength-bars" id="strengthBars">
+        <div class="sbar"></div><div class="sbar"></div><div class="sbar"></div><div class="sbar"></div><div class="sbar"></div>
+      </div>
+    </div>
+    <div class="countdown-wrap">
+      <div class="countdown-label">SIGNAL VALID FOR</div>
+      <div class="countdown-time" id="countdownTime">--:--</div>
+      <div class="countdown-bar-bg"><div class="countdown-bar" id="countdownBar" style="width:100%"></div></div>
+    </div>
+  </div>
+  <footer>TRADESIGNAL PRO v3.0 · FOR EDUCATIONAL PURPOSES ONLY · TRADE AT YOUR OWN RISK</footer>
+</div>
+<script>
+// ═══════════════════════════════════════════════════
+// PLATFORMS with their category (binary, crypto, mt4)
+// ═══════════════════════════════════════════════════
+const PLATFORMS = [
+  {id:'quotex',      name:'Quotex',       icon:'📊', type:'Binary / OTC',        cat:'binary'},
+  {id:'binomo',      name:'Binomo',       icon:'📈', type:'Binary / OTC',        cat:'binary'},
+  {id:'olymptrade',  name:'Olymp Trade',  icon:'🏆', type:'Binary / Forex',      cat:'binary'},
+  {id:'pocketoption',name:'Pocket Option',icon:'💼', type:'Binary / OTC',        cat:'binary'},
+  {id:'exnova',      name:'Exnova',       icon:'🔷', type:'Binary',              cat:'binary'},
+  {id:'iqoption',    name:'IQ Option',    icon:'🔵', type:'Binary / Forex',      cat:'binary'},
+  {id:'expertoption',name:'Expert Option',icon:'⚡', type:'Binary',              cat:'binary'},
+  {id:'raceoption',  name:'Race Option',  icon:'🏎️', type:'Binary',              cat:'binary'},
+  {id:'deriv',       name:'Deriv',        icon:'🔴', type:'CFDs / Synthetics',   cat:'deriv'},
+  {id:'mt4',         name:'MT4 / MT5',    icon:'📉', type:'Forex / CFDs',        cat:'mt4'},
+  {id:'binance',     name:'Binance',      icon:'🟡', type:'Crypto Spot/Futures', cat:'crypto'},
+  {id:'bybit',       name:'Bybit',        icon:'🔶', type:'Crypto Derivatives',  cat:'crypto'},
+  {id:'okx',         name:'OKX',          icon:'⭕', type:'Crypto Exchange',     cat:'crypto'},
+  {id:'kucoin',      name:'KuCoin',       icon:'🌐', type:'Crypto Exchange',     cat:'crypto'},
+  {id:'bitget',      name:'Bitget',       icon:'💎', type:'Crypto Copy Trade',   cat:'crypto'},
+  {id:'mexc',        name:'MEXC',         icon:'🔮', type:'Crypto Exchange',     cat:'crypto'},
+  {id:'gate',        name:'Gate.io',      icon:'🚪', type:'Crypto Exchange',     cat:'crypto'},
+  {id:'huobi',       name:'HTX (Huobi)',  icon:'🔥', type:'Crypto Exchange',     cat:'crypto'},
+  {id:'kraken',      name:'Kraken',       icon:'🐙', type:'Crypto Exchange',     cat:'crypto'},
+  {id:'coinbase',    name:'Coinbase Pro', icon:'🔵', type:'Crypto Exchange',     cat:'crypto'},
+];
+
+// ═══════════════════════════════════════════════════
+// ALL TIMEZONES - mapped by platform category
+// binary = all zones, crypto = major zones, mt4/deriv = all
+// ═══════════════════════════════════════════════════
+const ALL_TIMEZONES = [
+  {label:'UTC−12 IDLW', offset:'UTC-12',  city:"Int'l Date Line W",     cats:['binary','mt4','deriv']},
+  {label:'UTC−11 SST',  offset:'UTC-11',  city:'American Samoa',        cats:['binary','mt4','deriv']},
+  {label:'UTC−10 HST',  offset:'UTC-10',  city:'Honolulu',              cats:['binary','mt4','deriv']},
+  {label:'UTC−9 AKST',  offset:'UTC-9',   city:'Anchorage',             cats:['binary','mt4','deriv']},
+  {label:'UTC−8 PST',   offset:'UTC-8',   city:'Los Angeles / Seattle', cats:['binary','crypto','mt4','deriv']},
+  {label:'UTC−7 MST',   offset:'UTC-7',   city:'Denver / Phoenix',      cats:['binary','mt4','deriv']},
+  {label:'UTC−6 CST',   offset:'UTC-6',   city:'Chicago / Mexico City', cats:['binary','crypto','mt4','deriv']},
+  {label:'UTC−5 EST',   offset:'UTC-5',   city:'New York / Toronto',    cats:['binary','crypto','mt4','deriv']},
+  {label:'UTC−4 AST',   offset:'UTC-4',   city:'Santiago / Halifax',    cats:['binary','mt4','deriv']},
+  {label:'UTC−3 BRT',   offset:'UTC-3',   city:'Sao Paulo / Buenos Aires', cats:['binary','crypto','mt4','deriv']},
+  {label:'UTC−2',       offset:'UTC-2',   city:'Mid-Atlantic',          cats:['binary','mt4','deriv']},
+  {label:'UTC−1 AZOT',  offset:'UTC-1',   city:'Azores',                cats:['binary','mt4','deriv']},
+  {label:'UTC+0 GMT',   offset:'UTC+0',   city:'London / Lisbon',       cats:['binary','crypto','mt4','deriv']},
+  {label:'UTC+1 CET',   offset:'UTC+1',   city:'Paris / Berlin / Rome', cats:['binary','crypto','mt4','deriv']},
+  {label:'UTC+2 EET',   offset:'UTC+2',   city:'Cairo / Istanbul / Athens', cats:['binary','crypto','mt4','deriv']},
+  {label:'UTC+3 MSK',   offset:'UTC+3',   city:'Moscow / Riyadh / Nairobi', cats:['binary','crypto','mt4','deriv']},
+  {label:'UTC+4 GST',   offset:'UTC+4',   city:'Dubai / Abu Dhabi',     cats:['binary','crypto','mt4','deriv']},
+  {label:'UTC+4:30',    offset:'UTC+4:30',city:'Kabul',                 cats:['binary','mt4','deriv']},
+  {label:'UTC+5 PKT',   offset:'UTC+5',   city:'Karachi / Islamabad',   cats:['binary','crypto','mt4','deriv']},
+  {label:'UTC+5:30 IST',offset:'UTC+5:30',city:'New Delhi / Mumbai',    cats:['binary','crypto','mt4','deriv']},
+  {label:'UTC+5:45',    offset:'UTC+5:45',city:'Kathmandu',             cats:['binary','mt4','deriv']},
+  {label:'UTC+6 BST',   offset:'UTC+6',   city:'Dhaka / Almaty',        cats:['binary','crypto','mt4','deriv']},
+  {label:'UTC+6:30',    offset:'UTC+6:30',city:'Yangon',                cats:['binary','mt4','deriv']},
+  {label:'UTC+7 ICT',   offset:'UTC+7',   city:'Bangkok / Jakarta / Hanoi', cats:['binary','crypto','mt4','deriv']},
+  {label:'UTC+8 CST',   offset:'UTC+8',   city:'Beijing / Singapore / KL',  cats:['binary','crypto','mt4','deriv']},
+  {label:'UTC+8 HKT',   offset:'UTC+8',   city:'Hong Kong / Manila / Perth', cats:['binary','crypto','mt4','deriv']},
+  {label:'UTC+9 JST',   offset:'UTC+9',   city:'Tokyo / Seoul / Osaka', cats:['binary','crypto','mt4','deriv']},
+  {label:'UTC+9:30 ACST',offset:'UTC+9:30',city:'Adelaide / Darwin',   cats:['binary','mt4','deriv']},
+  {label:'UTC+10 AEST', offset:'UTC+10',  city:'Sydney / Melbourne',    cats:['binary','crypto','mt4','deriv']},
+  {label:'UTC+11 AEDT', offset:'UTC+11',  city:'Honiara / Magadan',     cats:['binary','mt4','deriv']},
+  {label:'UTC+12 NZST', offset:'UTC+12',  city:'Auckland / Fiji',       cats:['binary','crypto','mt4','deriv']},
+];
+
+// ═══════════════════════════════════════════════════
+// MARKET SCHEDULE RULES
+// weekend: 0=Sun,1=Mon...6=Sat
+// alwaysOn: true = 24/7 (Crypto, OTC, Synthetic)
+// openUTC: hour in UTC when market opens
+// closeUTC: hour in UTC when market closes
+// offDays: UTC day numbers when closed (0=Sun,6=Sat)
+// ═══════════════════════════════════════════════════
+const MARKET_SCHEDULE = {
+  'Crypto':    { alwaysOn: true },
+  'Futures':   { alwaysOn: true },
+  'OTC':       { alwaysOn: true },
+  'Synthetic': { alwaysOn: true },
+  'Forex':     { alwaysOn: false, openUTC: 22, closeUTC: 22, offDays: [0, 6], note: 'Mon–Fri only (Sydney open Sun 22:00 UTC)' },
+  'Commodity': { alwaysOn: false, openUTC: 23, closeUTC: 22, offDays: [0, 6], note: 'Mon–Fri only' },
+  'Index':     { alwaysOn: false, openUTC: 8,  closeUTC: 20, offDays: [0, 6], note: 'Weekdays only (market hours)' },
+  'Stock':     { alwaysOn: false, openUTC: 13, closeUTC: 20, offDays: [0, 6], note: 'Weekdays only (NYSE hours ~13:30–20:00 UTC)' },
+};
+
+function isMarketOpen(type) {
+  const sched = MARKET_SCHEDULE[type];
+  if (!sched) return true;
+  if (sched.alwaysOn) return true;
+  const now = new Date();
+  const dayUTC = now.getUTCDay();
+  if (sched.offDays.includes(dayUTC)) return false;
+  const hourUTC = now.getUTCHours();
+  if (sched.openUTC < sched.closeUTC) {
+    return hourUTC >= sched.openUTC && hourUTC < sched.closeUTC;
+  } else {
+    return hourUTC >= sched.openUTC || hourUTC < sched.closeUTC;
+  }
+}
+
+function getMarketStatusText(type) {
+  const sched = MARKET_SCHEDULE[type];
+  if (!sched || sched.alwaysOn) return null;
+  const now = new Date();
+  const dayUTC = now.getUTCDay();
+  if (dayUTC === 0) return `⛔ MARKET CLOSED · Sunday — Opens Monday 00:00 UTC`;
+  if (dayUTC === 6) return `⛔ MARKET CLOSED · Saturday — Opens Monday 00:00 UTC`;
+  const open = isMarketOpen(type);
+  return open
+    ? `✅ MARKET OPEN · ${sched.note || 'Active session'}`
+    : `⛔ MARKET CLOSED · Outside trading hours · ${sched.note || ''}`;
+}
+
+// ═══════════════════════════════════════════════════
+// ALL MARKETS
+// ═══════════════════════════════════════════════════
+const ALL_MARKETS = [
+  // CRYPTO SPOT
+  {id:'BTC/USDT', name:'BTC/USDT', icon:'₿',  type:'Crypto',  desc:'Bitcoin / Tether',        pl:['binance','bybit','okx','kucoin','bitget','mexc','gate','huobi','quotex','binomo','pocketoption']},
+  {id:'ETH/USDT', name:'ETH/USDT', icon:'Ξ',  type:'Crypto',  desc:'Ethereum / Tether',       pl:['binance','bybit','okx','kucoin','bitget','mexc','gate','huobi','quotex','binomo','pocketoption']},
+  {id:'BNB/USDT', name:'BNB/USDT', icon:'🔶', type:'Crypto',  desc:'Binance Coin',             pl:['binance','bybit','okx','kucoin','mexc']},
+  {id:'SOL/USDT', name:'SOL/USDT', icon:'◎',  type:'Crypto',  desc:'Solana',                   pl:['binance','bybit','okx','kucoin','bitget','mexc','gate','huobi']},
+  {id:'XRP/USDT', name:'XRP/USDT', icon:'💧', type:'Crypto',  desc:'Ripple',                   pl:['binance','bybit','okx','kucoin','bitget','mexc','gate','huobi','kraken','coinbase']},
+  {id:'ADA/USDT', name:'ADA/USDT', icon:'🔵', type:'Crypto',  desc:'Cardano',                  pl:['binance','bybit','okx','kucoin','mexc','gate','huobi','kraken','coinbase']},
+  {id:'DOGE/USDT',name:'DOGE/USDT',icon:'🐕', type:'Crypto',  desc:'Dogecoin',                 pl:['binance','bybit','okx','kucoin','bitget','mexc','gate','huobi','kraken','coinbase']},
+  {id:'AVAX/USDT',name:'AVAX/USDT',icon:'🏔️',type:'Crypto',  desc:'Avalanche',                pl:['binance','bybit','okx','kucoin','mexc','gate','huobi','coinbase']},
+  {id:'DOT/USDT', name:'DOT/USDT', icon:'⚫', type:'Crypto',  desc:'Polkadot',                 pl:['binance','bybit','okx','kucoin','mexc','gate','huobi','kraken']},
+  {id:'MATIC/USDT',name:'MATIC/USDT',icon:'🔷',type:'Crypto', desc:'Polygon',                  pl:['binance','bybit','okx','kucoin','bitget','mexc','gate','huobi','coinbase']},
+  {id:'LINK/USDT',name:'LINK/USDT',icon:'🔗', type:'Crypto',  desc:'Chainlink',                pl:['binance','bybit','okx','kucoin','mexc','gate','huobi','kraken','coinbase']},
+  {id:'LTC/USDT', name:'LTC/USDT', icon:'🥈', type:'Crypto',  desc:'Litecoin',                 pl:['binance','bybit','okx','kucoin','bitget','mexc','gate','huobi','kraken','coinbase']},
+  {id:'TRX/USDT', name:'TRX/USDT', icon:'🔴', type:'Crypto',  desc:'TRON',                     pl:['binance','bybit','okx','kucoin','mexc','gate','huobi']},
+  {id:'SHIB/USDT',name:'SHIB/USDT',icon:'🐶', type:'Crypto',  desc:'Shiba Inu',                pl:['binance','bybit','okx','kucoin','mexc','gate','huobi','coinbase']},
+  {id:'UNI/USDT', name:'UNI/USDT', icon:'🦄', type:'Crypto',  desc:'Uniswap',                  pl:['binance','bybit','okx','kucoin','mexc','gate','huobi','coinbase']},
+  {id:'ATOM/USDT',name:'ATOM/USDT',icon:'⚛️', type:'Crypto',  desc:'Cosmos',                   pl:['binance','bybit','okx','kucoin','mexc','gate','huobi','kraken','coinbase']},
+  {id:'ETC/USDT', name:'ETC/USDT', icon:'💠', type:'Crypto',  desc:'Ethereum Classic',         pl:['binance','bybit','okx','kucoin','mexc','gate','huobi','coinbase']},
+  {id:'BCH/USDT', name:'BCH/USDT', icon:'💚', type:'Crypto',  desc:'Bitcoin Cash',             pl:['binance','bybit','okx','kucoin','mexc','gate','huobi','coinbase','kraken']},
+  {id:'NEAR/USDT',name:'NEAR/USDT',icon:'🌐', type:'Crypto',  desc:'NEAR Protocol',            pl:['binance','bybit','okx','kucoin','mexc','gate','coinbase']},
+  {id:'ARB/USDT', name:'ARB/USDT', icon:'🔵', type:'Crypto',  desc:'Arbitrum',                 pl:['binance','bybit','okx','kucoin','bitget','mexc','gate','huobi']},
+  {id:'OP/USDT',  name:'OP/USDT',  icon:'🔴', type:'Crypto',  desc:'Optimism',                 pl:['binance','bybit','okx','kucoin','mexc','gate','coinbase']},
+  {id:'APT/USDT', name:'APT/USDT', icon:'🅰️', type:'Crypto',  desc:'Aptos',                    pl:['binance','bybit','okx','kucoin','mexc','gate','huobi']},
+  {id:'SUI/USDT', name:'SUI/USDT', icon:'💧', type:'Crypto',  desc:'Sui Network',              pl:['bybit','okx','kucoin','bitget','mexc','gate']},
+  {id:'INJ/USDT', name:'INJ/USDT', icon:'💉', type:'Crypto',  desc:'Injective',                pl:['binance','bybit','okx','kucoin','mexc']},
+  {id:'PEPE/USDT',name:'PEPE/USDT',icon:'🐸', type:'Crypto',  desc:'Pepe Meme Coin',           pl:['binance','bybit','okx','kucoin','mexc','gate']},
+  {id:'WIF/USDT', name:'WIF/USDT', icon:'🐶', type:'Crypto',  desc:'dogwifhat',                pl:['binance','bybit','okx','mexc','gate']},
+  {id:'TON/USDT', name:'TON/USDT', icon:'💎', type:'Crypto',  desc:'Toncoin (Telegram)',       pl:['bybit','okx','kucoin','bitget','mexc','gate','huobi']},
+  {id:'JUP/USDT', name:'JUP/USDT', icon:'🪐', type:'Crypto',  desc:'Jupiter (Solana DEX)',     pl:['bybit','okx','kucoin','mexc','gate']},
+  {id:'SEI/USDT', name:'SEI/USDT', icon:'🌊', type:'Crypto',  desc:'Sei Network',              pl:['bybit','okx','kucoin','mexc','gate']},
+  {id:'FIL/USDT', name:'FIL/USDT', icon:'📁', type:'Crypto',  desc:'Filecoin',                 pl:['binance','okx','kucoin','mexc','gate','huobi']},
+  {id:'HBAR/USDT',name:'HBAR/USDT',icon:'🔺', type:'Crypto',  desc:'Hedera Hashgraph',         pl:['binance','okx','kucoin','mexc','gate','coinbase']},
+  {id:'VET/USDT', name:'VET/USDT', icon:'✅', type:'Crypto',  desc:'VeChain',                  pl:['binance','bybit','okx','kucoin','mexc','gate','huobi']},
+  {id:'ICP/USDT', name:'ICP/USDT', icon:'🌐', type:'Crypto',  desc:'Internet Computer',        pl:['binance','bybit','okx','kucoin','mexc','gate','coinbase']},
+  {id:'FTM/USDT', name:'FTM/USDT', icon:'👻', type:'Crypto',  desc:'Fantom',                   pl:['binance','bybit','okx','kucoin','mexc','gate','huobi']},
+  {id:'ALGO/USDT',name:'ALGO/USDT',icon:'🔷', type:'Crypto',  desc:'Algorand',                 pl:['binance','okx','kucoin','mexc','gate','coinbase','kraken']},
+  {id:'XLM/USDT', name:'XLM/USDT', icon:'⭐', type:'Crypto',  desc:'Stellar Lumens',           pl:['binance','okx','kucoin','mexc','gate','coinbase','kraken']},
+  {id:'XMR/USDT', name:'XMR/USDT', icon:'🔒', type:'Crypto',  desc:'Monero (Privacy)',         pl:['okx','kucoin','gate','huobi','kraken']},
+  {id:'FLOKI/USDT',name:'FLOKI/USDT',icon:'🐕',type:'Crypto', desc:'Floki Inu',                pl:['binance','bybit','okx','kucoin','mexc','gate']},
+  {id:'BONK/USDT',name:'BONK/USDT',icon:'🐶', type:'Crypto',  desc:'Bonk (Solana Meme)',       pl:['bybit','okx','kucoin','mexc','gate']},
+  {id:'RENDER/USDT',name:'RENDER/USDT',icon:'🖥️',type:'Crypto',desc:'Render Network (AI)',    pl:['binance','bybit','okx','kucoin','coinbase']},
+  {id:'FET/USDT', name:'FET/USDT', icon:'🤖', type:'Crypto',  desc:'Fetch.ai (AI Token)',      pl:['binance','bybit','okx','kucoin','mexc','coinbase']},
+  {id:'GRT/USDT', name:'GRT/USDT', icon:'📊', type:'Crypto',  desc:'The Graph',                pl:['binance','okx','kucoin','mexc','gate','coinbase']},
+  // Crypto vs USD (Binary platforms)
+  {id:'BTC/USD',  name:'BTC/USD',  icon:'₿',  type:'Crypto',  desc:'Bitcoin vs US Dollar',    pl:['iqoption','olymptrade','quotex','binomo','pocketoption','exnova','expertoption','raceoption']},
+  {id:'ETH/USD',  name:'ETH/USD',  icon:'Ξ',  type:'Crypto',  desc:'Ethereum vs US Dollar',   pl:['iqoption','olymptrade','quotex','binomo','pocketoption','exnova','expertoption']},
+  {id:'LTC/USD',  name:'LTC/USD',  icon:'🥈', type:'Crypto',  desc:'Litecoin vs US Dollar',   pl:['iqoption','olymptrade','quotex','pocketoption']},
+  {id:'XRP/USD',  name:'XRP/USD',  icon:'💧', type:'Crypto',  desc:'Ripple vs US Dollar',     pl:['iqoption','olymptrade','pocketoption','quotex']},
+  {id:'DOGE/USD', name:'DOGE/USD', icon:'🐕', type:'Crypto',  desc:'Dogecoin vs US Dollar',   pl:['pocketoption','exnova']},
+  // FUTURES
+  {id:'BTC Perp', name:'BTC Perpetual',icon:'📉',type:'Futures',desc:'BTC USDT Perp Contract',pl:['binance','bybit','okx','bitget','mexc','gate','huobi']},
+  {id:'ETH Perp', name:'ETH Perpetual',icon:'📉',type:'Futures',desc:'ETH USDT Perp Contract',pl:['binance','bybit','okx','bitget','mexc','gate','huobi']},
+  {id:'SOL Perp', name:'SOL Perpetual',icon:'📉',type:'Futures',desc:'SOL USDT Perp Contract',pl:['binance','bybit','okx','bitget','mexc','gate']},
+  {id:'XRP Perp', name:'XRP Perpetual',icon:'📉',type:'Futures',desc:'XRP USDT Perp Contract',pl:['binance','bybit','okx','bitget']},
+  {id:'BNB Perp', name:'BNB Perpetual',icon:'📉',type:'Futures',desc:'BNB USDT Perp Contract',pl:['binance','bybit','okx']},
+  {id:'DOGE Perp',name:'DOGE Perpetual',icon:'📉',type:'Futures',desc:'DOGE USDT Perp',       pl:['binance','bybit','okx','bitget']},
+  {id:'AVAX Perp',name:'AVAX Perpetual',icon:'📉',type:'Futures',desc:'AVAX USDT Perp',       pl:['binance','bybit','okx']},
+  {id:'ARB Perp', name:'ARB Perpetual',icon:'📉',type:'Futures',desc:'ARB USDT Perp',         pl:['binance','bybit','okx']},
+  // FOREX
+  {id:'EUR/USD',  name:'EUR/USD',  icon:'€',  type:'Forex',   desc:'Euro vs US Dollar',       pl:['iqoption','olymptrade','quotex','binomo','pocketoption','exnova','expertoption','raceoption','mt4','deriv']},
+  {id:'GBP/USD',  name:'GBP/USD',  icon:'£',  type:'Forex',   desc:'British Pound vs Dollar', pl:['iqoption','olymptrade','quotex','binomo','pocketoption','exnova','mt4','deriv']},
+  {id:'USD/JPY',  name:'USD/JPY',  icon:'¥',  type:'Forex',   desc:'Dollar vs Yen',           pl:['iqoption','olymptrade','quotex','binomo','pocketoption','mt4','deriv']},
+  {id:'AUD/USD',  name:'AUD/USD',  icon:'🦘', type:'Forex',   desc:'Australian Dollar vs USD',pl:['iqoption','olymptrade','quotex','binomo','pocketoption','mt4','deriv']},
+  {id:'USD/CAD',  name:'USD/CAD',  icon:'🍁', type:'Forex',   desc:'Dollar vs Canadian Dollar',pl:['iqoption','olymptrade','pocketoption','mt4','deriv','quotex']},
+  {id:'USD/CHF',  name:'USD/CHF',  icon:'🇨🇭',type:'Forex',   desc:'Dollar vs Swiss Franc',   pl:['iqoption','olymptrade','pocketoption','mt4','deriv','quotex']},
+  {id:'NZD/USD',  name:'NZD/USD',  icon:'🥝', type:'Forex',   desc:'NZ Dollar vs USD',        pl:['iqoption','olymptrade','pocketoption','mt4','deriv']},
+  {id:'EUR/GBP',  name:'EUR/GBP',  icon:'🇪🇺',type:'Forex',   desc:'Euro vs British Pound',   pl:['iqoption','olymptrade','pocketoption','mt4','quotex','binomo']},
+  {id:'EUR/JPY',  name:'EUR/JPY',  icon:'🇯🇵',type:'Forex',   desc:'Euro vs Yen',             pl:['iqoption','olymptrade','pocketoption','mt4']},
+  {id:'GBP/JPY',  name:'GBP/JPY',  icon:'🇬🇧',type:'Forex',   desc:'Pound vs Yen',           pl:['iqoption','olymptrade','pocketoption','mt4']},
+  {id:'EUR/AUD',  name:'EUR/AUD',  icon:'🇦🇺',type:'Forex',   desc:'Euro vs AUD',             pl:['iqoption','mt4','quotex']},
+  {id:'GBP/AUD',  name:'GBP/AUD',  icon:'🇦🇺',type:'Forex',   desc:'Pound vs AUD',           pl:['iqoption','mt4']},
+  {id:'EUR/CAD',  name:'EUR/CAD',  icon:'🍁', type:'Forex',   desc:'Euro vs CAD',             pl:['iqoption','mt4']},
+  {id:'AUD/JPY',  name:'AUD/JPY',  icon:'🦘', type:'Forex',   desc:'AUD vs Yen',              pl:['iqoption','mt4','pocketoption']},
+  {id:'CAD/JPY',  name:'CAD/JPY',  icon:'🍁', type:'Forex',   desc:'CAD vs Yen',              pl:['iqoption','mt4']},
+  {id:'CHF/JPY',  name:'CHF/JPY',  icon:'🇨🇭',type:'Forex',   desc:'CHF vs Yen',             pl:['iqoption','mt4']},
+  {id:'USD/TRY',  name:'USD/TRY',  icon:'🇹🇷',type:'Forex',   desc:'Dollar vs Turkish Lira', pl:['iqoption','pocketoption','mt4']},
+  {id:'USD/MXN',  name:'USD/MXN',  icon:'🇲🇽',type:'Forex',   desc:'Dollar vs Mexican Peso', pl:['iqoption','mt4']},
+  {id:'USD/BRL',  name:'USD/BRL',  icon:'🇧🇷',type:'Forex',   desc:'Dollar vs Brazilian Real',pl:['iqoption','mt4']},
+  {id:'USD/ZAR',  name:'USD/ZAR',  icon:'🇿🇦',type:'Forex',   desc:'Dollar vs South African Rand',pl:['iqoption','mt4']},
+  {id:'USD/PKR',  name:'USD/PKR',  icon:'🇵🇰',type:'Forex',   desc:'Dollar vs Pakistan Rupee',pl:['mt4']},
+  {id:'USD/INR',  name:'USD/INR',  icon:'🇮🇳',type:'Forex',   desc:'Dollar vs Indian Rupee',  pl:['mt4']},
+  {id:'USD/SGD',  name:'USD/SGD',  icon:'🇸🇬',type:'Forex',   desc:'Dollar vs Singapore Dollar',pl:['mt4']},
+  {id:'USD/HKD',  name:'USD/HKD',  icon:'🇭🇰',type:'Forex',   desc:'Dollar vs Hong Kong Dollar',pl:['mt4']},
+  {id:'USD/SAR',  name:'USD/SAR',  icon:'🇸🇦',type:'Forex',   desc:'Dollar vs Saudi Riyal',  pl:['mt4']},
+  {id:'USD/AED',  name:'USD/AED',  icon:'🇦🇪',type:'Forex',   desc:'Dollar vs UAE Dirham',   pl:['mt4']},
+  {id:'GBP/CHF',  name:'GBP/CHF',  icon:'🇨🇭',type:'Forex',   desc:'Pound vs Swiss Franc',   pl:['iqoption','mt4']},
+  {id:'EUR/CHF',  name:'EUR/CHF',  icon:'🇨🇭',type:'Forex',   desc:'Euro vs Swiss Franc',    pl:['iqoption','mt4']},
+  // OTC (always open - 24/7)
+  {id:'EUR/USD OTC',name:'EUR/USD OTC',icon:'🔄',type:'OTC',desc:'OTC 24/7 Trading',         pl:['quotex','binomo','pocketoption','exnova','expertoption','raceoption']},
+  {id:'GBP/USD OTC',name:'GBP/USD OTC',icon:'🔄',type:'OTC',desc:'OTC 24/7 Trading',         pl:['quotex','binomo','pocketoption','exnova','expertoption','raceoption']},
+  {id:'USD/JPY OTC',name:'USD/JPY OTC',icon:'🔄',type:'OTC',desc:'OTC 24/7 Trading',          pl:['quotex','binomo','pocketoption','exnova','expertoption']},
+  {id:'AUD/USD OTC',name:'AUD/USD OTC',icon:'🔄',type:'OTC',desc:'OTC 24/7 Trading',          pl:['quotex','binomo','pocketoption','exnova']},
+  {id:'EUR/JPY OTC',name:'EUR/JPY OTC',icon:'🔄',type:'OTC',desc:'OTC 24/7 Trading',          pl:['quotex','binomo','pocketoption']},
+  {id:'GBP/JPY OTC',name:'GBP/JPY OTC',icon:'🔄',type:'OTC',desc:'OTC 24/7 Trading',          pl:['quotex','pocketoption']},
+  {id:'NZD/USD OTC',name:'NZD/USD OTC',icon:'🔄',type:'OTC',desc:'OTC 24/7 Trading',          pl:['quotex','pocketoption']},
+  {id:'USD/CHF OTC',name:'USD/CHF OTC',icon:'🔄',type:'OTC',desc:'OTC 24/7 Trading',          pl:['quotex','pocketoption']},
+  {id:'USD/CAD OTC',name:'USD/CAD OTC',icon:'🔄',type:'OTC',desc:'OTC 24/7 Trading',          pl:['quotex','pocketoption']},
+  {id:'EUR/GBP OTC',name:'EUR/GBP OTC',icon:'🔄',type:'OTC',desc:'OTC 24/7 Trading',          pl:['quotex','binomo','pocketoption']},
+  {id:'BTC/USD OTC',name:'BTC/USD OTC',icon:'🔄',type:'OTC',desc:'Crypto OTC 24/7',           pl:['quotex','pocketoption']},
+  {id:'ETH/USD OTC',name:'ETH/USD OTC',icon:'🔄',type:'OTC',desc:'Crypto OTC 24/7',           pl:['quotex','pocketoption']},
+  {id:'CAD/CHF OTC',name:'CAD/CHF OTC',icon:'🔄',type:'OTC',desc:'OTC 24/7 Trading',          pl:['pocketoption','exnova']},
+  {id:'EUR/NZD OTC',name:'EUR/NZD OTC',icon:'🔄',type:'OTC',desc:'OTC 24/7 Trading',          pl:['pocketoption','exnova']},
+  {id:'USD/NOK OTC',name:'USD/NOK OTC',icon:'🔄',type:'OTC',desc:'OTC 24/7 Trading',          pl:['pocketoption']},
+  {id:'USD/SEK OTC',name:'USD/SEK OTC',icon:'🔄',type:'OTC',desc:'OTC 24/7 Trading',          pl:['pocketoption']},
+  // COMMODITIES
+  {id:'GOLD',     name:'GOLD (XAU)',icon:'🥇', type:'Commodity',desc:'Spot Gold / XAU-USD',   pl:['iqoption','olymptrade','quotex','binomo','pocketoption','exnova','expertoption','mt4','deriv']},
+  {id:'SILVER',   name:'SILVER (XAG)',icon:'🥈',type:'Commodity',desc:'Spot Silver / XAG-USD',pl:['iqoption','olymptrade','quotex','pocketoption','mt4']},
+  {id:'OIL WTI',  name:'OIL WTI',  icon:'🛢️',type:'Commodity',desc:'Crude Oil West Texas',   pl:['iqoption','olymptrade','quotex','pocketoption','mt4']},
+  {id:'OIL BRENT',name:'OIL Brent',icon:'🛢️',type:'Commodity',desc:'Brent North Sea Crude',  pl:['iqoption','olymptrade','pocketoption','mt4']},
+  {id:'NAT GAS',  name:'Natural Gas',icon:'🔥',type:'Commodity',desc:'Henry Hub Natural Gas',  pl:['iqoption','mt4']},
+  {id:'COPPER',   name:'COPPER',   icon:'🔶', type:'Commodity',desc:'XCU/USD Copper',          pl:['iqoption','mt4']},
+  {id:'PLATINUM', name:'PLATINUM', icon:'⚪', type:'Commodity',desc:'XPT/USD Platinum',        pl:['iqoption','mt4']},
+  {id:'PALLADIUM',name:'PALLADIUM',icon:'🔵', type:'Commodity',desc:'XPD/USD Palladium',       pl:['mt4']},
+  {id:'WHEAT',    name:'WHEAT',    icon:'🌾', type:'Commodity',desc:'Wheat Futures',            pl:['iqoption','mt4']},
+  {id:'CORN',     name:'CORN',     icon:'🌽', type:'Commodity',desc:'Corn Futures',             pl:['iqoption','mt4']},
+  {id:'COFFEE',   name:'COFFEE',   icon:'☕', type:'Commodity',desc:'Arabica Coffee Futures',  pl:['iqoption','mt4']},
+  {id:'COCOA',    name:'COCOA',    icon:'🍫', type:'Commodity',desc:'Cocoa Futures',            pl:['iqoption','mt4']},
+  // INDICES
+  {id:'NASDAQ',   name:'NASDAQ 100',icon:'📊',type:'Index',   desc:'US Tech Index',            pl:['iqoption','olymptrade','quotex','pocketoption','mt4','deriv']},
+  {id:'S&P 500',  name:'S&P 500',  icon:'🇺🇸',type:'Index',  desc:'US 500 Index',             pl:['iqoption','olymptrade','quotex','pocketoption','mt4','deriv']},
+  {id:'DOW JONES',name:'Dow Jones',icon:'📈', type:'Index',   desc:'US 30 Blue-Chip Index',    pl:['iqoption','olymptrade','pocketoption','mt4']},
+  {id:'DAX 40',   name:'DAX 40',   icon:'🇩🇪',type:'Index',  desc:'German Stock Index',       pl:['iqoption','olymptrade','pocketoption','mt4']},
+  {id:'FTSE 100', name:'FTSE 100', icon:'🇬🇧',type:'Index',  desc:'UK 100 Stock Index',       pl:['iqoption','olymptrade','pocketoption','mt4']},
+  {id:'NIKKEI',   name:'Nikkei 225',icon:'🇯🇵',type:'Index', desc:'Japan Stock Index',        pl:['iqoption','mt4']},
+  {id:'CAC 40',   name:'CAC 40',   icon:'🇫🇷',type:'Index',  desc:'France Stock Index',       pl:['iqoption','mt4']},
+  {id:'ASX 200',  name:'ASX 200',  icon:'🇦🇺',type:'Index',  desc:'Australia Stock Index',    pl:['iqoption','mt4']},
+  {id:'HANG SENG',name:'Hang Seng',icon:'🇭🇰',type:'Index',  desc:'Hong Kong Stock Index',    pl:['iqoption','mt4']},
+  {id:'CSI 300',  name:'CSI 300',  icon:'🇨🇳',type:'Index',  desc:'China A-Shares Index',     pl:['iqoption','mt4']},
+  {id:'CRYPTO IDX',name:'Crypto IDX',icon:'📊',type:'Index', desc:'Crypto Market Index',      pl:['binomo','deriv']},
+  {id:'EURO STOXX',name:'Euro Stoxx 50',icon:'🇪🇺',type:'Index',desc:'Europe Top 50 Index',  pl:['iqoption','mt4']},
+  // SYNTHETIC (Deriv only - always open)
+  {id:'Vol 10',   name:'Volatility 10', icon:'🎲',type:'Synthetic',desc:'Synth Index · Deriv',pl:['deriv']},
+  {id:'Vol 25',   name:'Volatility 25', icon:'🎲',type:'Synthetic',desc:'Synth Index · Deriv',pl:['deriv']},
+  {id:'Vol 50',   name:'Volatility 50', icon:'🎲',type:'Synthetic',desc:'Synth Index · Deriv',pl:['deriv']},
+  {id:'Vol 75',   name:'Volatility 75', icon:'🎲',type:'Synthetic',desc:'Synth Index · Deriv',pl:['deriv']},
+  {id:'Vol 100',  name:'Volatility 100',icon:'🎲',type:'Synthetic',desc:'Synth Index · Deriv',pl:['deriv']},
+  {id:'Boom 500', name:'Boom 500',      icon:'💥',type:'Synthetic',desc:'Boom Index · Deriv', pl:['deriv']},
+  {id:'Boom 1000',name:'Boom 1000',     icon:'💥',type:'Synthetic',desc:'Boom Index · Deriv', pl:['deriv']},
+  {id:'Crash 500',name:'Crash 500',     icon:'💥',type:'Synthetic',desc:'Crash Index · Deriv',pl:['deriv']},
+  {id:'Crash 1000',name:'Crash 1000',   icon:'💥',type:'Synthetic',desc:'Crash Index · Deriv',pl:['deriv']},
+  {id:'Step Index',name:'Step Index',   icon:'👣',type:'Synthetic',desc:'Step Index · Deriv', pl:['deriv']},
+  {id:'Jump 10',  name:'Jump 10',       icon:'🚀',type:'Synthetic',desc:'Jump Index · Deriv', pl:['deriv']},
+  {id:'Jump 25',  name:'Jump 25',       icon:'🚀',type:'Synthetic',desc:'Jump Index · Deriv', pl:['deriv']},
+  {id:'Jump 50',  name:'Jump 50',       icon:'🚀',type:'Synthetic',desc:'Jump Index · Deriv', pl:['deriv']},
+  {id:'Jump 75',  name:'Jump 75',       icon:'🚀',type:'Synthetic',desc:'Jump Index · Deriv', pl:['deriv']},
+  {id:'Jump 100', name:'Jump 100',      icon:'🚀',type:'Synthetic',desc:'Jump Index · Deriv', pl:['deriv']},
+  {id:'Range Break 100',name:'Range Break 100',icon:'📐',type:'Synthetic',desc:'Range · Deriv',pl:['deriv']},
+  {id:'Range Break 200',name:'Range Break 200',icon:'📐',type:'Synthetic',desc:'Range · Deriv',pl:['deriv']},
+  // STOCKS (weekdays, market hours only)
+  {id:'APPLE',    name:'Apple Inc',    icon:'🍎',type:'Stock',desc:'AAPL · OTC Shares',       pl:['iqoption','pocketoption','quotex']},
+  {id:'AMAZON',   name:'Amazon',       icon:'📦',type:'Stock',desc:'AMZN · OTC Shares',       pl:['iqoption','pocketoption','quotex']},
+  {id:'GOOGLE',   name:'Alphabet',     icon:'🔍',type:'Stock',desc:'GOOGL · OTC Shares',      pl:['iqoption','pocketoption','quotex']},
+  {id:'TESLA',    name:'Tesla',        icon:'⚡',type:'Stock',desc:'TSLA · OTC Shares',       pl:['iqoption','pocketoption','quotex']},
+  {id:'META',     name:'Meta (Facebook)',icon:'👤',type:'Stock',desc:'META · OTC Shares',      pl:['iqoption','pocketoption']},
+  {id:'MICROSOFT',name:'Microsoft',    icon:'🪟',type:'Stock',desc:'MSFT · OTC Shares',       pl:['iqoption','pocketoption','quotex']},
+  {id:'NETFLIX',  name:'Netflix',      icon:'🎬',type:'Stock',desc:'NFLX · OTC Shares',       pl:['iqoption','pocketoption']},
+  {id:'ALIBABA',  name:'Alibaba',      icon:'🛒',type:'Stock',desc:'BABA · OTC Shares',       pl:['iqoption','pocketoption']},
+  {id:'NVIDIA',   name:'NVIDIA',       icon:'🖥️',type:'Stock',desc:'NVDA · OTC Shares',       pl:['iqoption','pocketoption']},
+  {id:'MCDONALDS',name:"McDonald's",   icon:'🍔',type:'Stock',desc:'MCD · OTC Shares',        pl:['iqoption']},
+  {id:'BOEING',   name:'Boeing',       icon:'✈️',type:'Stock',desc:'BA · OTC Shares',          pl:['iqoption']},
+  {id:'COCACOLA', name:'Coca-Cola',    icon:'🥤',type:'Stock',desc:'KO · OTC Shares',         pl:['iqoption']},
+  {id:'DISNEY',   name:'Disney',       icon:'🏰',type:'Stock',desc:'DIS · OTC Shares',        pl:['iqoption','pocketoption']},
+  {id:'INTEL',    name:'Intel Corp',   icon:'💻',type:'Stock',desc:'INTC · OTC Shares',       pl:['iqoption','pocketoption']},
+  {id:'AMD',      name:'AMD',          icon:'🔴',type:'Stock',desc:'AMD · OTC Shares',        pl:['iqoption','pocketoption']},
+  {id:'PAYPAL',   name:'PayPal',       icon:'💳',type:'Stock',desc:'PYPL · OTC Shares',       pl:['iqoption','pocketoption']},
+  {id:'UBER',     name:'Uber',         icon:'🚗',type:'Stock',desc:'UBER · OTC Shares',       pl:['iqoption']},
+  {id:'AIRBNB',   name:'Airbnb',       icon:'🏠',type:'Stock',desc:'ABNB · OTC Shares',       pl:['iqoption']},
+  {id:'SHOPIFY',  name:'Shopify',      icon:'🛍️',type:'Stock',desc:'SHOP · OTC Shares',       pl:['iqoption']},
+  {id:'SPOTIFY',  name:'Spotify',      icon:'🎵',type:'Stock',desc:'SPOT · OTC Shares',       pl:['iqoption']},
+  {id:'TWITTER',  name:'X (Twitter)',  icon:'🐦',type:'Stock',desc:'X · OTC Shares',          pl:['iqoption','pocketoption']},
+];
+
+const CATEGORIES = ['All','Crypto','Forex','OTC','Commodity','Index','Futures','Synthetic','Stock'];
+
+// ═══════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════
+const state = {platform:null, platformCat:null, timezone:null, market:null, timeMin:null};
+let activeSignal = null, countdownInterval = null, currentCat = 'All';
+
+// ═══════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════
+window.addEventListener('load', () => {
+  buildPlatforms(); buildCategoryTabs(); initTicker(); loadSessionSignal();
+});
+
+function buildPlatforms() {
+  const g = document.getElementById('platformGrid');
+  PLATFORMS.forEach(p => {
+    const b = document.createElement('button');
+    b.className = 'platform-btn'; b.dataset.id = p.id; b.dataset.cat = p.cat;
+    b.innerHTML = `<span class="p-icon">${p.icon}</span><span class="p-name">${p.name}</span><span class="p-type">${p.type}</span>`;
+    b.onclick = () => selectPlatform(p.id, p.cat, b);
+    g.appendChild(b);
+  });
+}
+
+function buildTimezones(platformCat) {
+  const g = document.getElementById('tzGrid');
+  g.innerHTML = '';
+  const filtered = ALL_TIMEZONES.filter(tz => tz.cats.includes(platformCat));
+  filtered.forEach(tz => {
+    const b = document.createElement('button');
+    b.className = 'tz-btn'; b.dataset.offset = tz.offset;
+    b.innerHTML = `${tz.label}<span class="tz-city">${tz.city}</span>`;
+    b.onclick = () => selectTimezone(tz.offset, b);
+    g.appendChild(b);
+  });
+}
+
+function buildCategoryTabs() {
+  const t = document.getElementById('catTabs');
+  CATEGORIES.forEach(cat => {
+    const b = document.createElement('button');
+    b.className = 'cat-tab' + (cat === 'All' ? ' active-tab' : '');
+    b.textContent = cat;
+    b.onclick = () => {
+      currentCat = cat; filterMarkets();
+      document.querySelectorAll('.cat-tab').forEach(x => x.classList.remove('active-tab'));
+      b.classList.add('active-tab');
+    };
+    t.appendChild(b);
+  });
+}
+
+// ═══════════════════════════════════════════════════
+// PLATFORM SELECTION
+// ═══════════════════════════════════════════════════
+function selectPlatform(id, cat, btn) {
+  state.platform = id;
+  state.platformCat = cat;
+  document.querySelectorAll('.platform-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  markDone('step1');
+  // Rebuild timezones for this platform category
+  buildTimezones(cat);
+  // Reset timezone selection
+  state.timezone = null;
+  unlockStep('step2');
+  // Reset downstream
+  state.market = null; state.timeMin = null;
+  resetStep('step3','3'); resetStep('step4','4');
+  document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('selectedMarketDisplay').style.display = 'none';
+  document.getElementById('marketSearchPanel').style.display = 'block';
+  document.getElementById('marketStatusBar').style.display = 'none';
+  currentCat = 'All';
+  document.querySelectorAll('.cat-tab').forEach((b,i) => {b.classList.toggle('active-tab', i===0);});
+  filterMarkets();
+  clearSignalDisplay();
+  sessionStorage.removeItem('activeSignal');
+  checkReady();
+}
+
+// ═══════════════════════════════════════════════════
+// TIMEZONE SELECTION
+// ═══════════════════════════════════════════════════
+function selectTimezone(offset, btn) {
+  state.timezone = offset;
+  document.querySelectorAll('.tz-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  markDone('step2');
+  unlockStep('step3');
+  filterMarkets();
+  checkReady();
+}
+
+// ═══════════════════════════════════════════════════
+// MARKET FILTER - only show platform markets, hide closed ones
+// ═══════════════════════════════════════════════════
+function getFiltered() {
+  const q = document.getElementById('marketSearch').value.trim().toLowerCase();
+  return ALL_MARKETS.filter(m => {
+    const okPlatform = !state.platform || m.pl.includes(state.platform);
+    const okCat = currentCat === 'All' || m.type === currentCat;
+    const okQ = !q || m.name.toLowerCase().includes(q) || m.desc.toLowerCase().includes(q) || m.type.toLowerCase().includes(q) || m.id.toLowerCase().includes(q);
+    const okOpen = isMarketOpen(m.type); // hide closed markets
+    return okPlatform && okCat && okQ && okOpen;
+  });
+}
+
+function filterMarkets() {
+  const list = document.getElementById('marketList');
+  const clearBtn = document.getElementById('clearBtn');
+  const countEl = document.getElementById('marketCount');
+  const q = document.getElementById('marketSearch').value;
+  clearBtn.style.display = q ? 'block' : 'none';
+  const markets = getFiltered();
+
+  // Show market status info
+  const statusBar = document.getElementById('marketStatusBar');
+  if (currentCat !== 'All' && currentCat !== 'Crypto' && currentCat !== 'OTC' && currentCat !== 'Synthetic' && currentCat !== 'Futures') {
+    const statusText = getMarketStatusText(currentCat);
+    if (statusText) {
+      statusBar.textContent = statusText;
+      statusBar.style.display = 'block';
+      statusBar.className = 'market-status-bar' + (isMarketOpen(currentCat) ? ' open' : '');
+    }
+  } else {
+    statusBar.style.display = 'none';
+  }
+
+  // Count closed markets to show info
+  const allPlatformMarkets = ALL_MARKETS.filter(m => {
+    const okPlatform = !state.platform || m.pl.includes(state.platform);
+    const okCat = currentCat === 'All' || m.type === currentCat;
+    return okPlatform && okCat;
+  });
+  const closedCount = allPlatformMarkets.length - markets.length;
+
+  countEl.textContent = `${markets.length} market${markets.length!==1?'s':''} available${closedCount>0?' · '+closedCount+' closed (hidden)':''}`;
+
+  if (!markets.length) {
+    list.innerHTML = '<div class="no-results">⛔ No markets open right now in this category.<br>Try OTC or Crypto — they trade 24/7.</div>';
+    return;
+  }
+  list.innerHTML = '';
+  markets.forEach(m => {
+    const div = document.createElement('div');
+    div.className = 'market-item' + (state.market === m.id ? ' selected-item' : '');
+    div.innerHTML = `<div class="market-item-left"><span class="market-icon">${m.icon}</span><div><div class="market-name">${m.name}</div><div class="market-desc">${m.desc}</div></div></div><span class="market-badge badge-${m.type.toLowerCase()}">${m.type}</span>`;
+    div.onclick = () => selectMarket(m);
+    list.appendChild(div);
+  });
+}
+
+function selectMarket(m) {
+  state.market = m.id;
+  document.getElementById('selectedMarketDisplay').style.display = 'flex';
+  document.getElementById('smIcon').textContent = m.icon;
+  document.getElementById('smName').textContent = m.name;
+  document.getElementById('smSub').textContent = m.type + ' · ' + m.desc;
+  document.getElementById('marketSearchPanel').style.display = 'none';
+  document.getElementById('marketStatusBar').style.display = 'none';
+  markDone('step3');
+  unlockStep('step4'); // FIX: this was the bug - step4 was not being unlocked
+  state.timeMin = null;
+  // Reset step4 label but keep unlocked
+  const s4 = document.getElementById('step4');
+  s4.classList.remove('done');
+  s4.classList.add('active');
+  s4.querySelector('.step-num').textContent = '4';
+  document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('selected'));
+  clearSignalDisplay();
+  sessionStorage.removeItem('activeSignal');
+  checkReady();
+}
+
+function showMarketSearch() {
+  document.getElementById('selectedMarketDisplay').style.display = 'none';
+  document.getElementById('marketSearchPanel').style.display = 'block';
+  state.market = null;
+  resetStep('step3','3');
+  document.getElementById('step3').classList.remove('step-locked');
+  document.getElementById('step3').classList.add('active');
+  filterMarkets(); checkReady();
+}
+
+function clearSearch() {
+  document.getElementById('marketSearch').value = '';
+  document.getElementById('clearBtn').style.display = 'none';
+  filterMarkets();
+}
+
+// ═══════════════════════════════════════════════════
+// TIME SELECTION
+// ═══════════════════════════════════════════════════
+function selectTime(min, btn) {
+  state.timeMin = min;
+  document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  markDone('step4');
+  checkReady();
+}
+
+// ═══════════════════════════════════════════════════
+// STEP HELPERS
+// ═══════════════════════════════════════════════════
+function unlockStep(id) {
+  const e = document.getElementById(id);
+  e.classList.remove('step-locked');
+  e.classList.add('active');
+}
+function markDone(id) {
+  const e = document.getElementById(id);
+  e.classList.remove('active','step-locked');
+  e.classList.add('done');
+  e.querySelector('.step-num').textContent = '✓';
+}
+function resetStep(id, label) {
+  const e = document.getElementById(id);
+  e.classList.remove('done','active');
+  e.classList.add('step-locked');
+  e.querySelector('.step-num').textContent = label;
+}
+function checkReady() {
+  const ready = state.platform && state.timezone && state.market && state.timeMin;
+  document.getElementById('signalBtnWrap').style.display = ready ? 'block' : 'none';
+}
+
+// ═══════════════════════════════════════════════════
+// SIGNAL GENERATION
+// ═══════════════════════════════════════════════════
+function getSignal() {
+  if (activeSignal && activeSignal.expiry > Date.now() && activeSignal.platform === state.platform && activeSignal.market === state.market && activeSignal.timeMin === state.timeMin) {
+    displaySignal(activeSignal, false); return;
+  }
+  const btn = document.getElementById('getSignalBtn');
+  btn.textContent = '🔍 ANALYZING MARKET...'; btn.disabled = true;
+  setTimeout(() => {
+    btn.textContent = '⚡ GET SIGNAL'; btn.disabled = false;
+    const direction = generateSignal();
+    const strength = Math.floor(Math.random() * 2) + 4;
+    const durationMs = state.timeMin * 60 * 1000;
+    const expiry = Date.now() + durationMs;
+    activeSignal = {direction, strength, platform:state.platform, timezone:state.timezone, market:state.market, timeMin:state.timeMin, expiry, durationMs};
+    sessionStorage.setItem('activeSignal', JSON.stringify(activeSignal));
+    document.getElementById('signalBtnWrap').style.display = 'none';
+    displaySignal(activeSignal, true);
+  }, 2400);
+}
+
+function generateSignal() {
+  const windowMs = state.timeMin * 60 * 1000;
+  const windowId = Math.floor(Date.now() / windowMs);
+  const seed = (windowId * 2654435761 + hashStr(state.market + state.platform)) >>> 0;
+  return (seed % 2 === 0) ? 'UP' : 'DOWN';
+}
+
+function hashStr(s) {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (Math.imul(31, h) + s.charCodeAt(i)) | 0;
+  return Math.abs(h);
+}
+
+function displaySignal(sig, animate) {
+  const box = document.getElementById('signalResult');
+  box.style.display = 'block';
+  box.className = sig.direction === 'UP' ? 'up' : 'down';
+  document.getElementById('signalArrow').textContent = sig.direction === 'UP' ? '▲' : '▼';
+  document.getElementById('signalDirection').textContent = sig.direction === 'UP' ? 'BUY / UP' : 'SELL / DOWN';
+  document.getElementById('signalMeta').textContent = `${sig.market} · ${sig.platform.toUpperCase()} · ${sig.timeMin}MIN`;
+  const pName = (PLATFORMS.find(p => p.id === sig.platform) || {name: sig.platform.toUpperCase()}).name;
+  document.getElementById('summaryRow').innerHTML = `<span class="summary-pill"><span class="dot"></span>${pName}</span><span class="summary-pill"><span class="dot"></span>${sig.timezone}</span><span class="summary-pill"><span class="dot"></span>${sig.market}</span><span class="summary-pill"><span class="dot"></span>${sig.timeMin} MIN</span>`;
+  document.querySelectorAll('#strengthBars .sbar').forEach((b, i) => {
+    b.classList.remove('active-up','active-down');
+    if (i < sig.strength) b.classList.add(sig.direction === 'UP' ? 'active-up' : 'active-down');
+  });
+  startCountdown(sig);
+  if (animate) {
+    box.classList.add('flash');
+    setTimeout(() => box.classList.remove('flash'), 400);
+  }
+  document.getElementById('signalBtnWrap').style.display = 'none';
+}
+
+function startCountdown(sig) {
+  if (countdownInterval) clearInterval(countdownInterval);
+  function tick() {
+    const rem = sig.expiry - Date.now();
+    if (rem <= 0) {
+      document.getElementById('countdownTime').textContent = '00:00';
+      document.getElementById('countdownBar').style.width = '0%';
+      clearInterval(countdownInterval);
+      clearSignalDisplay(); activeSignal = null; sessionStorage.removeItem('activeSignal');
+      document.getElementById('signalBtnWrap').style.display = 'block';
+      return;
+    }
+    const mins = Math.floor(rem / 60000), secs = Math.floor((rem % 60000) / 1000);
+    document.getElementById('countdownTime').textContent = `${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
+    document.getElementById('countdownBar').style.width = (rem / sig.durationMs * 100) + '%';
+  }
+  tick(); countdownInterval = setInterval(tick, 1000);
+}
+
+function clearSignalDisplay() {
+  const box = document.getElementById('signalResult');
+  box.style.display = 'none'; box.className = '';
+  if (countdownInterval) clearInterval(countdownInterval);
+}
+
+// ═══════════════════════════════════════════════════
+// SESSION RESTORE
+// ═══════════════════════════════════════════════════
+function loadSessionSignal() {
+  const stored = sessionStorage.getItem('activeSignal');
+  if (!stored) return;
+  try {
+    const sig = JSON.parse(stored);
+    if (sig.expiry > Date.now()) {
+      const plat = PLATFORMS.find(p => p.id === sig.platform);
+      if (!plat) return;
+      activeSignal = sig;
+      state.platform = sig.platform; state.platformCat = plat.cat;
+      state.timezone = sig.timezone; state.market = sig.market; state.timeMin = sig.timeMin;
+      buildTimezones(plat.cat);
+      ['step1','step2','step3','step4'].forEach(id => markDone(id));
+      document.querySelectorAll('.platform-btn').forEach(b => {if(b.dataset.id===sig.platform) b.classList.add('selected');});
+      document.querySelectorAll('.tz-btn').forEach(b => {if(b.dataset.offset===sig.timezone) b.classList.add('selected');});
+      const mData = ALL_MARKETS.find(m => m.id === sig.market);
+      if (mData) {
+        document.getElementById('selectedMarketDisplay').style.display = 'flex';
+        document.getElementById('smIcon').textContent = mData.icon;
+        document.getElementById('smName').textContent = mData.name;
+        document.getElementById('smSub').textContent = mData.type + ' · ' + mData.desc;
+        document.getElementById('marketSearchPanel').style.display = 'none';
+      }
+      document.querySelectorAll('.time-btn').forEach(b => {if(b.textContent.trim()===sig.timeMin+' MIN') b.classList.add('selected');});
+      displaySignal(sig, false);
+    } else sessionStorage.removeItem('activeSignal');
+  } catch(e) { sessionStorage.removeItem('activeSignal'); }
+}
+
+// ═══════════════════════════════════════════════════
+// LIVE TICKER
+// ═══════════════════════════════════════════════════
+const TD = {'BTC/USDT':67420,'ETH/USDT':3812,'BNB/USDT':590,'SOL/USDT':172,'XRP/USDT':0.6123,'ADA/USDT':0.4521,'DOGE/USDT':0.1542,'EUR/USD':1.0842,'GBP/USD':1.2651,'USD/JPY':149.82,'GOLD':2345,'SILVER':27.45,'OIL WTI':78.34,'NASDAQ':18230,'S&P 500':5211,'PEPE/USDT':0.00001423};
+function initTicker() { updateTicker(); setInterval(updateTicker, 3000); }
+function updateTicker() {
+  Object.keys(TD).forEach(k => {
+    const v = TD[k]; const c = (Math.random()-0.499)*v*0.0007;
+    TD[k] = +(v+c).toFixed(v>100?2:v>1?4:8);
+  });
+  const parts = Object.entries(TD).map(([k,v]) => {
+    const up = Math.random()>0.5;
+    return `<span style="color:${up?'#00ff88':'#ff3366'}">${up?'▲':'▼'}</span> <span style="color:var(--dim)">${k}</span> <span style="color:var(--text)">${v}</span>`;
+  });
+  const t = parts.join(' <span style="color:var(--border)"> | </span> ');
+  document.getElementById('tickerText').innerHTML = t + ' <span style="color:var(--border)"> | </span> ' + t;
+}
+</script>
+</body>
+</html>
